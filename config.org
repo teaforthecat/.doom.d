@@ -1,4 +1,8 @@
-#+TITLE: Doom Config El
+#+TITLE: Doom Config
+
+* Doom config/Emacs config
+
+** intro for beginners and my returning self
 
 The first thing to do, after installing doom(following the instructions of
 course), is to start configuring. Since I had seen others do literate configs, I
@@ -27,6 +31,7 @@ it.
 And you're off! Enjoy life as an emacs hacker with the hugely productive boost
 that Doom has given you.
 
+
 #+BEGIN_SRC emacs-lisp
 ;;; $DOOMDIR/config.el -*- lexical-binding: t; -*-
 
@@ -43,17 +48,14 @@ that Doom has given you.
 ;; are the three important ones:
 ;;
 ;; + `doom-font'
-;; + `doom-variable-pitch-font'
+;; + ` doom-variable-pitch-font '
 ;; + `doom-big-font' -- used for `doom-big-font-mode'; use this for
 ;;   presentations or streaming.
 ;;
 ;; They all accept either a font-spec, font string ("Input Mono-12"), or xlfd
 ;; font string. You generally only need these two:
-(setq doom-font (font-spec :family "monospace" :name "Inconsolata" :size 19 :weight 'normal
-                               :width 'normal)
-      ;; I don't know what variable-pitch-font is
-      ;; doom-variable-pitch-font (font-spec :family "sans" :size 13)
-      )
+(setq doom-font (font-spec :family "monospace" :name "Inconsolata"
+                           :size 19 :weight 'normal :width 'normal))
 
 
 ;; There are two ways to load a theme. Both assume the theme is installed and
@@ -86,18 +88,202 @@ that Doom has given you.
 ;;
 ;; You can also try 'gd' (or 'C-c c d') to jump to their definition and see how
 ;; they are implemented.
-(map!
- :nv "SPC c l" #'evilnc-comment-or-uncomment-lines
- :nv "t" #'evil-avy-goto-char-2
- :v "v" #'er/expand-region
- :n "n" #'evil-scroll-down
- :n "N" #'evil-scroll-up
- :n "SPC k x" #'sp-kill-hybrid-sexp
- )
+#+END_SRC
 
+** first things first, maximize on startup
+This was copied from Doom docs. I used `SPC h d f`(doom-help-faq), then typed
+"maximize", and it brought me straight to some code I could copy. Neat!
+#+BEGIN_SRC emacs-lisp
 (add-to-list 'initial-frame-alist '(fullscreen . maximized))
+#+END_SRC
+
+** Start adding key mappings
+These are shortcut ideas combined with things that I got used to from Spacemacs.
+If we were to organize key mappings we might consider the general operations a
+person does with a cursor.
+
+*** navigation
+
+  hjkl
+
+  With the combination of the Colemak layout, and evil, I've got a sort of
+  joystick orientation when moving a single charactor or line. `j`(down) is
+  `r0u`(right index finger up) and `k`(up) is `r0d`(right index finger down).
+  And then `h`(left) and `l`(right) are between those, albet kind of crooked, at
+  `r0` and `r1u`, respectivly.
+
+  moving further
+
+  The most fun way to move around, that I've seen, is using avy. In this
+  technique, you simply look at where you want to go, activate avy, type the
+  first two letters that start the word you are looking at, then type the
+  letters that avy overlays onto the letters you are looking at. That is a lot
+  of words for something that happens very fast. I've overwriten `t`, on which
+  Doom had placed `evil-snipe` which operates similarly, but it is initially
+  configured to scope to the current line, which is much too small of a scope
+  for the precious position of `t`, which is at `l1` on Colemak, as well as the
+  precious operation of navigating text. Another consideration here is that
+  `evil-snipe` can be configured to scope to all the visual text, and it could
+  be a way to get to text faster in some cases, so perhaps, it could stay around
+  for a while, but under the slightly less convenient `T`.
+
+ #+BEGIN_SRC emacs-lisp
+(setq evil-snipe-scope 'whole-visible)
+
+(setq avy-keys '(?a ?r ?s ?t ?o ?i ?e ?n))
+
+(map! :nv "t" #'evil-avy-goto-char-2)
+
+
 
 #+END_SRC
 
+moving even further
+
+`n` is the other most precious position at `r1`. Doom has `evil-ex-search-next`
+and I've never liked having to choose between forward and backward when searching
+within a file - just show me the whole file, you know?. Swiper will accomodate
+that nicely, so we can use `n` for something common. The next most common action
+I can think of is scrolling. So, both scroll up and scroll down(aka page up/page
+down) are set to `n` at the coveting `r1` position.
+#+BEGIN_SRC emacs-lisp
+(map!
+ :n "n" #'evil-scroll-down
+ :n "N" #'evil-scroll-up
+ )
+#+END_SRC
+
+
+These functions help you get to where you want to go. There is a search aspect
+to them, but mostly, they help you if you know where you want to go, and there
+is only one thing to jump to. I'd say they can be considered navigation commands.
+
+M-g g goto-line
+SPC s r counsel-mark-ring jump back to previous(marked) positions
+SPC s i counsel-imenu - things defined in file
+SPC p f find-file-in-project
+SPC p p switch-to-project
+
+I thought I wanted fuzzy matching with `(ivy +fuzzy)` in init.el but then I
+learned you can put a space as a glob which accomplishes a similar effect. So
+the only non-built-in function for jumping around is jumping to the beginning of
+some line, which is really a duplicate of avy, so this is a little silly. I
+might change my mind on `avy-goto-line` and replace it with something more
+useful, but I don't know what that would be yet.
+
+#+BEGIN_SRC emacs-lisp
+(map! :n "G" #'avy-goto-line)
+#+END_SRC
+This also removes what appears to be a broken `evil-goto-line` which Doom puts on `G`
+
+
+**** searching
+These functions help you find things.
+
+SPC s b counsel-grep-or-swiper a little slow
+SPC s S swiper-isearch-thing-at-point
+SPC s p +ivy/project-search
+use vio, then SPC s p for search project for thing-at-point
+
+
+
+**** basic editing; search and replace, comments, select(then copy,paste,delete)
+M-% query-replace
+
+
+There does not seem to be a `projectile-rename` like thing in which all
+occurances of a symbol in a project get renamed. But you can do it with two
+commands - there is a supported workflow that we can use. It is complicated, but
+the power is worth it, I think.
+
+1. `SPC s R` counsel-git-grep *Don't hit enter yet!
+2. `C-c C-e` turn on wgrep(for edits)
+3. `M-%` search and replace interactivly
+4. `y` to replace or `n` to skip
+5. `C-c C-c` to write changes to files `C-c C-k` to abort
+
+`counsel-git-grep` does not have a key mapping in Doom so let's set one.
+`SPC s R` is unused.
+
+#+BEGIN_SRC emacs-lisp
+(map!
+ :nv "SPC s R" #'counsel-git-grep
+ )
+#+END_SRC
+
 #+RESULTS:
-: ((fullscreen . maximized))
+
+I don't know why this is not set. I must be missing how to comment with vi, but it may also be that the command is not convenient for me. Plus I'm used to this key mapping from Spacemacs. There is both :n(normal) and :v(visual) so a selected region can be commented.
+#+BEGIN_SRC emacs-lisp
+(map!
+ :nv "SPC c l" #'evilnc-comment-or-uncomment-lines
+ )
+
+#+END_SRC
+
+***** select with evil's text-objects
+I've been wanting this and didn't know that it's been there all along.
+I found this in Doom's FAQ:
+#+BEGIN_QUOTE
+  There's a text object for every "step" of expansion that expand-region
+  provides (and more). To select the word at point = =viw=, symbol at point =
+  =vio=, line at point = =V=, the block at point (by indentation) = =vii=, the
+  block at point (by braces) = =vib=, sentence at point = =vis=, paragraph =
+  =vip=, and so on.
+- Selection expansion can be emulated by using text objects consecutively: =viw=
+  to select a word, followed by =io= to expand to a symbol, then =ib= expands to
+  the surrounding brackets/parentheses, etc. There is no reverse of this
+  however; you'd have to restart visual state.
+#+END_QUOTE
+
+
+
+*** a partial index of key mappings
+It would be cool if this was complete, but it is not. It is just a lot of work.
+I mostly did this as a review excersize to familiarize myself with Doom's
+default keymapping.
+
+;; a evil-append used sometimes, but less than i ;; r evil-replace not used much
+;; s evil-snipe-s not used much, practicing
+
+;;  d evil-delete used often
+
+;; o evil-open-below used often
+;; i evil-insert used often
+;; e evil-forward-word-end used often
+;; n evil-scroll-up/down
+;; b evil-backward-word-begin used often
+;; v evil-visual used often (repeat to expand)
+;; c evil-change not used often; a,del instead
+;; x evil-delete used sometimes
+;; z prefix for a bunch of stuff
+
+;; m evil-set-marker not used, but probably should try it out
+;; , evil-snipe-revers-repeat depends on use of evil-snipe
+;; . evil-repeat not used, don't want to repeat much
+;; u evil-undo
+;; y evil-yank
+
+;; g prefix to a bunch of stuff
+;; p evil-paste-after used often (paste)
+;; f evil-swipe-f not used - must replace dup of s
+;; w evil-forward-word-begin - must replace dup of b
+;; q evil-record-macro not used, would like to practice though
+
+;; L evil-window-bottom not used, scroll or avy instead
+;; Y evil-yank-line practice
+;; E evil-forward-WORD-end
+;; B evil-backward-WORD-begin
+;; H evil-window-top not used, scroll or avy instead
+;; D evil-delete-line not used, but makes sense
+;; R evil-replace-state not used
+;; A evil-append-line
+;; Z prefix to exit stuff
+;; W evil-forward-WORD-begin not used
+;; F evil-snipe-f not used
+;; P evil-paste-before not used but makes sense
+;; G evil-goto-line broken set magit status here perhaps?
+;; J evil-join used a lot
+;; K +lookup/documentation
+
+;;    note: need pop-mark-command
