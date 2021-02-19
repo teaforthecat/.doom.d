@@ -1,8 +1,7 @@
 #+TITLE: Doom Config
 
-* Doom config/Emacs config
 
-** intro for beginners and my returning self
+* intro for beginners and my returning self
 
 The first thing to do, after installing doom(following the instructions of
 course), is to start configuring. Since I had seen others do literate configs, I
@@ -90,19 +89,19 @@ that Doom has given you.
 ;; they are implemented.
 #+END_SRC
 
-** first things first, maximize on startup
+* first things first, maximize on startup
 This was copied from Doom docs. I used `SPC h d f`(doom-help-faq), then typed
 "maximize", and it brought me straight to some code I could copy. Neat!
 #+BEGIN_SRC emacs-lisp
 (add-to-list 'initial-frame-alist '(fullscreen . maximized))
 #+END_SRC
 
-** Start adding key mappings
+* Start adding key mappings
 These are shortcut ideas combined with things that I got used to from Spacemacs.
 If we were to organize key mappings we might consider the general operations a
 person does with a cursor.
 
-*** navigation
+** navigation
 
   hjkl
 
@@ -177,7 +176,7 @@ useful, but I don't know what that would be yet.
 This also removes what appears to be a broken `evil-goto-line` which Doom puts on `G`
 
 
-**** searching
+** searching
 These functions help you find things.
 
 SPC s b counsel-grep-or-swiper a little slow
@@ -185,9 +184,10 @@ SPC s S swiper-isearch-thing-at-point
 SPC s p +ivy/project-search
 use vio, then SPC s p for search project for thing-at-point
 
+I didn't really have to add anything here(yet!)(except for search and replace below).
 
 
-**** basic editing; search and replace, comments, select(then copy,paste,delete)
+** basic editing; search and replace, comments, select(then copy,paste,delete)
 M-% query-replace
 
 
@@ -221,7 +221,7 @@ I don't know why this is not set. I must be missing how to comment with vi, but 
 
 #+END_SRC
 
-***** select with evil's text-objects
+*** select with evil's text-objects
 I've been wanting this and didn't know that it's been there all along.
 I found this in Doom's FAQ:
 #+BEGIN_QUOTE
@@ -238,7 +238,7 @@ I found this in Doom's FAQ:
 
 
 
-*** a partial index of key mappings
+** a partial index of key mappings
 It would be cool if this was complete, but it is not. It is just a lot of work.
 I mostly did this as a review excersize to familiarize myself with Doom's
 default keymapping.
