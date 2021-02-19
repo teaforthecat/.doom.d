@@ -40,8 +40,6 @@ that Doom has given you.
 
 ;; Some functionality uses this to identify you, e.g. GPG configuration, email
 ;; clients, file templates and snippets.
-(setq user-full-name "Chris Thopmson"
-      user-mail-address "teaforthecat@gmail.com")
 
 ;; Doom exposes five (optional) variables for controlling fonts in Doom. Here
 ;; are the three important ones:
@@ -287,3 +285,13 @@ default keymapping.
 ;; K +lookup/documentation
 
 ;;    note: need pop-mark-command
+
+
+** load secrets
+I followed this setup: https://www.masteringemacs.org/article/keeping-secrets-in-emacs-gnupg-auth-sources
+This didn't work before setting file-name-handler-alist - thanks https://github.com/hlissner/doom-emacs/issues/3339
+#+BEGIN_SRC emacs-lisp
+(let ((file-name-handler-alist (cons epa-file-handler nil)))
+  (load-library (expand-file-name "~/.doom.d/secrets.el.gpg")))
+#+END_SRC
+
