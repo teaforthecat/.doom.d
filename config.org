@@ -3,32 +3,34 @@
 
 * intro for beginners and my returning self
 
-The first thing to do, after installing doom(following the instructions of
-course), is to start configuring. Since I had seen others do literate configs, I
-knew that an org file could output an elisp file, and that could be use as the
-config. This is also called "tangling". This is a great way to maintain code. It
-looks nicer than comments, and can be exported to html for others to peruse online:).
-There are a few steps to take before even starting to configuring emacs in this
-way, however.
+The first thing to do, after following the doom installation instructions, is to
+start configuring. Since I had seen others do literate configs, I knew that an
+org file could output an elisp file, and that could be used as the config. This
+is also called "tangling". This is a great way to maintain code. It looks nicer
+than comments, and can be exported to html for others to peruse online:). I also
+think it will benefit your future self to see the thinking or explaination of
+why a particular configuration was made, and having the file in this format
+really helps to enforce that behavior. There are a few steps to take before even
+starting to configure emacs in this way, however.
 
-1. uncomment the line that contain "literal" in `~/.doom.d/init.el`.
+1. uncomment the line that contains "literal" in `~/.doom.d/init.el`.
 2. move config.el to config.org
-3. prepend the file with lines: `#+TITLE: Doom Config`, then `#+BEGIN_SRC emacs-lisp`
+3. prepend the file with two lines: `#+TITLE: Doom Config`, then `#+BEGIN_SRC emacs-lisp`
 4. append `#+END_SRC` to the bottom of the file
 
 Now you have a literate file; the source block will be exported to `config.el`
-and loaded. Next, Doom needs to rethink itself, strategize.
+and loaded. Next, Doom needs to restart. (`doom/reload` might work here)
 
-1. exit emacs
+1. exit emacs `SPC q q`
 2. run `~/.doom.d/bin/doom sync`
-3. start emacs and continue configuring ad inititum
+3. start emacs and continue configuring (ad inifitum)
 
 Keep adding source blocks with descriptive text above it like this one:) To
 evaluate the source block, i.e.: test it, type `C-c C-c` with the cursor inside
 it.
 
-And you're off! Enjoy life as an emacs hacker with the hugely productive boost
-that Doom has given you.
+And you're off! Enjoy life as an emacs hacker with a productive boost
+from Doom.
 
 
 #+BEGIN_SRC emacs-lisp
@@ -96,8 +98,8 @@ This was copied from Doom docs. I used `SPC h d f`(doom-help-faq), then typed
 
 * Start adding key mappings
 These are shortcut ideas combined with things that I got used to from Spacemacs.
-If we were to organize key mappings we might consider the general operations a
-person does with a cursor.
+Let's consider the general operations a person does with a cursor before
+organizing key mappings.
 
 ** navigation
 
@@ -121,8 +123,7 @@ person does with a cursor.
   for the precious position of `t`, which is at `l1` on Colemak, as well as the
   precious operation of navigating text. Another consideration here is that
   `evil-snipe` can be configured to scope to all the visual text, and it could
-  be a way to get to text faster in some cases, so perhaps, it could stay around
-  for a while, but under the slightly less convenient `T`.
+  be a way to get to text faster in some cases.
 
  #+BEGIN_SRC emacs-lisp
 (setq evil-snipe-scope 'whole-visible)
@@ -150,6 +151,7 @@ down) are set to `n` at the coveting `r1` position.
  )
 #+END_SRC
 
+Go-to
 
 These functions help you get to where you want to go. There is a search aspect
 to them, but mostly, they help you if you know where you want to go, and there
@@ -161,20 +163,22 @@ SPC s i counsel-imenu - things defined in file
 SPC p f find-file-in-project
 SPC p p switch-to-project
 
-I thought I wanted fuzzy matching with `(ivy +fuzzy)` in init.el but then I
-learned you can put a space as a glob which accomplishes a similar effect. So
-the only non-built-in function for jumping around is jumping to the beginning of
-some line, which is really a duplicate of avy, so this is a little silly. I
-might change my mind on `avy-goto-line` and replace it with something more
-useful, but I don't know what that would be yet.
+Go-to line `M-g g` is set to `goto-line`(by number), which might be an emacs
+default. That is good enough, and I will use it, but it is slightly easier to
+use avy to go straight to the position, which includes the line. This is the
+only function for jumping around that I'm assigning, and this is partly to remove what appears
+to be a broken `evil-goto-line` which Doom puts on `G`. Because of the duplication this is a great candidate for something else, but I don't have anything else at the moment, so I'll try this out.
 
 #+BEGIN_SRC emacs-lisp
 (map! :n "G" #'avy-goto-line)
 #+END_SRC
-This also removes what appears to be a broken `evil-goto-line` which Doom puts on `G`
 
 
 ** searching
+ I thought I wanted fuzzy matching with `(ivy +fuzzy)` in init.el but
+then I learned you can put a space as a glob which accomplishes a similar
+effect.
+
 These functions help you find things.
 
 SPC s b counsel-grep-or-swiper a little slow
@@ -186,19 +190,25 @@ I didn't really have to add anything here(yet!)(except for search and replace be
 
 
 ** basic editing; search and replace, comments, select(then copy,paste,delete)
-M-% query-replace
 
+Replace in buffer
+
+M-% query-replace - a big player, but be sure to navigate to the top of the buffer first
 
 There does not seem to be a `projectile-rename` like thing in which all
 occurances of a symbol in a project get renamed. But you can do it with two
 commands - there is a supported workflow that we can use. It is complicated, but
 the power is worth it, I think.
 
+Project-wide rename workflow
+
 1. `SPC s R` counsel-git-grep *Don't hit enter yet!
 2. `C-c C-e` turn on wgrep(for edits)
 3. `M-%` search and replace interactivly
 4. `y` to replace or `n` to skip
 5. `C-c C-c` to write changes to files `C-c C-k` to abort
+
+ Search the project for any string
 
 `counsel-git-grep` does not have a key mapping in Doom so let's set one.
 `SPC s R` is unused.
@@ -209,9 +219,16 @@ the power is worth it, I think.
  )
 #+END_SRC
 
-#+RESULTS:
+Commenting
 
-I don't know why this is not set. I must be missing how to comment with vi, but it may also be that the command is not convenient for me. Plus I'm used to this key mapping from Spacemacs. There is both :n(normal) and :v(visual) so a selected region can be commented.
+`G c ?` evil-comment-operator - needs practice/research I'm not sure what the
+third key is supposed to do, but `G c c` seems to do what I want - comment a
+line. With a selection(a.k.a. in visual mode), `G c` will comment the region, so
+that is nice. To bad that wasn't easier to figure out. There isn't anything helpful in the faq or docs via a search for "comment".
+
+I'm used to this key mapping from Spacemacs. There is both :n(normal) and
+:v(visual) so a selected region can be commented. Even though this is redundant,
+I'll keep it, maybe it will help with the transition.
 #+BEGIN_SRC emacs-lisp
 (map!
  :nv "SPC c l" #'evilnc-comment-or-uncomment-lines
@@ -295,3 +312,83 @@ This didn't work before setting file-name-handler-alist - thanks https://github.
   (load-library (expand-file-name "~/.doom.d/secrets.el.gpg")))
 #+END_SRC
 
+
+** now let's get into coding
+Ruby
+
+I had to go back and add rbenv support in init.el, which looks like: `(ruby
++rails +rbenv)`. With a `doom/reload`, `projectile-rails-console` worked(via
+`SPC m r r`). I'm noticing `robe-jump` is not bound however. There are probably
+not any better ways to jump to a definition than asking the thing that is
+actually running the code, so let's set that.
+#+BEGIN_SRC emacs-lisp
+(map!
+ :n "SPC m g" #'robe-jump)
+#+END_SRC
+
+
+** indenting :revisit:
+It is common to want to indent more than one line at once in order to clean
+things up. This could be done upon save with a formatter, but, I like to see it
+before I save it, so I'll do this workflow: `v i p` to select the
+paragraph(or text between two emty lines), or `v i g` for whole buffer, then `=`
+for `evil-indent`. These could be combined into one action, but this is good
+enough for now, so no key mapping needed here.
+
+
+** quirks
+*** SPC SPC
+SPC SPC for find file is fine, but I like the mnemonic version `SPC f f`.
+#+begin_src emacs-lisp
+(map!
+ :leader :desc "M-x" :g "SPC" #'counsel-M-x)
+#+end_src
+
+*** smartparens
+The author of doom seems to purport to have a good alternative to smartparens,
+but I'm not seeing it. Smartparens is great, it is already enabled, let's get
+the benefits. It will delete both boundary chars and not leave one hanging,
+forcing you to delete two boundary chars(i.e.: "')]}, etc.) Plus, I only see
+"inner" selections such as `evil-textobj-anyblock-inner-block`which won't select
+the boundary chars, which means to delete those is more key presses. That gets
+to be a lot of key presses to delete something.
+
+#+begin_src emacs-lisp
+
+(smartparens-global-strict-mode t)
+
+(map!
+ :leader
+ :prefix ("k" . "smartparens")
+ :n "x" #'sp-kill-sexp
+ :n "c" #'sp-copy-sexp
+ :n "s" #'sp-forward-slurp-sexp
+ :n "b" #'sp-forward-barf-sexp
+ :n "t" #'smartparens-strict-mode ;;toggle
+       )
+
+#+end_src
+
+
+** other apps
+
+The zen doom module might be neat, for this file in particular. I uncommented
+zen in `init.el` and reload doom with `SPC h r r`. In addition the fullscreen
+option does not seem to work but there is a function for that, and it is mapped
+to `SPC t F`(toggle-frame-fullscreeen). Maybe a mode hook is in order here? I'm
+noticing line numbers and the slightest green edge line to indicate additions
+not yet staged in git, and bigger and different font too. so, neat!
+
+More modules!
+
+I poked around what else is available in init.el and I noticed a few things I
+should have as a web developer. So I uncommented these modules: web, yaml,
+docker. I also have been wanting to port my shell popwin function, but I see
+that doom has one in the shell, and eshell modules so I'll try both. I
+uncommented shell,eshell.
+
+I also want to explore doing more in emacs, so I'm trying these modules:
+emacs-everywhere and deft.
+
+
+** TODO quickrun-region
