@@ -326,6 +326,19 @@ actually running the code, so let's set that.
  :n "SPC m g" #'robe-jump)
 #+END_SRC
 
+How should rbenv fit in rbenv.el?
+
+*** Java
+
+#+BEGIN_SRC emacs-lisp
+(use-package jenv
+  :config
+  (global-jenv-mode t))
+#+END_SRC
+
+#+RESULTS:
+: t
+
 
 ** indenting :revisit:
 It is common to want to indent more than one line at once in order to clean
@@ -353,22 +366,41 @@ forcing you to delete two boundary chars(i.e.: "')]}, etc.) Plus, I only see
 the boundary chars, which means to delete those is more key presses. That gets
 to be a lot of key presses to delete something.
 
+!! Update this is incompatable with the lispy doom module -> learn lispy?
+
 #+begin_src emacs-lisp
 
-(smartparens-global-strict-mode t)
+;; (smartparens-global-strict-mode t)
 
-(map!
- :leader
- :prefix ("k" . "smartparens")
- :n "x" #'sp-kill-sexp
- :n "c" #'sp-copy-sexp
- :n "s" #'sp-forward-slurp-sexp
- :n "b" #'sp-forward-barf-sexp
- :n "t" #'smartparens-strict-mode ;;toggle
-       )
+;; (map!
+;;  :leader
+;;  :prefix ("k" . "smartparens")
+;;  :n "x" #'sp-kill-sexp
+;;  :n "c" #'sp-copy-sexp
+;;  :n "s" #'sp-forward-slurp-sexp
+;;  :n "b" #'sp-forward-barf-sexp
+;;  :n "t" #'smartparens-strict-mode ;;toggle
+       ;; )
 
 #+end_src
 
+*** switching projects
+
+#+begin_src emacs-lisp
+(setq +workspaces-switch-project-function
+      (lambda (dir)
+        (magit-status dir)
+        ;; (+shell/toggle)
+        ))
+
+;; fullframe magit buffer
+(setq magit-display-buffer-function
+      'magit-display-buffer-fullframe-status-v1)
+
+#+end_src
+
+#+RESULTS:
+: magit-display-buffer-fullframe-status-v1
 
 ** other apps
 
@@ -390,5 +422,51 @@ uncommented shell,eshell.
 I also want to explore doing more in emacs, so I'm trying these modules:
 emacs-everywhere and deft.
 
+** web server
+
+#+begin_src emacs-lisp
+(defun ct/ws-handler ()
+  (lambda (request)
+    (with-slots (process headers) request
+      ;; (ws-response-header process 200 '("Content-Type" . "text/html"))
+      (ws-send-file process (expand-file-name "~/.doom.d/index.html"))
+      ;; (process-send-string process (file ))
+      )))
+
+;; (ws-stop-all)
+(defun ct/ws-stop ()
+  (ws-stop ct/ws)
+  (setq ct/ws nil))
+
+(use-package web-server
+  :config
+  (defvar ct/ws nil)
+  (if ct/ws
+      (message "web server is running")
+    (setq ct/ws
+          (ws-start (ct/ws-handler)
+              9000))))
+
+#+end_src
+
+#+RESULTS:
+: t
+
+** pop-to-mark-command
+This is so useful. What am I doing wrong here? Am I supposed to use `avy-pop-mark`? That function doesn't do what I want though.
+So here.
+#+begin_src emacs-lisp
+(map! :nv "C-." #'pop-to-mark-command )
+
+#+end_src
+
+** find file at point
+#+begin_src emacs-lisp
+(map! :leader :n "ff" #'ffap)
+
+#+end_src
+
+#+RESULTS:
+: ffap
 
 ** TODO quickrun-region
