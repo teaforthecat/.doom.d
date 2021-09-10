@@ -395,12 +395,18 @@ to be a lot of key presses to delete something.
 
 ;; fullframe magit buffer
 (setq magit-display-buffer-function
-      'magit-display-buffer-fullframe-status-v1)
+     (lambda (buffer)
+       (display-buffer buffer '(magit--display-buffer-fullframe))))
+
+;; undo doom's magit setting for this, this is the default
+(setq magit-bury-buffer-function 'magit-restore-window-configuration)
+
+(setq magit-list-refs-sortby "-creatordate")
 
 #+end_src
 
 #+RESULTS:
-: magit-display-buffer-fullframe-status-v1
+: -creatordate
 
 ** other apps
 
@@ -470,3 +476,29 @@ So here.
 : ffap
 
 ** TODO quickrun-region
+
+** connecting to aws
+
+
+#+begin_src emacs-lisp
+
+  (defun aws-vault-exec ()
+    (interactive)
+    (let ((aws-vault-output-buffer-name "aws-vault output"))
+      (shell-command "AWS_VAULT= aws-vault exec ve -- env | grep AWS"
+                     (get-buffer-create aws-vault-output-buffer-name))
+      (with-current-buffer  aws-vault-output-buffer-name
+        (dolist (line (split-string (buffer-string) "\n"))
+          (destructuring-bind (name . value) (split-string line "=")
+            (setenv name (first value)))))
+      (kill-buffer aws-vault-output-buffer-name)))
+
+#+end_src
+
+#+RESULTS:
+: aws-vault-exec
+
+***    not sure why creating a file via ffap is blocked
+#+begin_src emacs-lisp
+(setq ffap-newfile-prompt t)
+#+end_src

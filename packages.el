@@ -51,3 +51,4 @@
 
 (package! jenv)
 (package! web-server)
+(package! magit)
