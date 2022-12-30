@@ -502,3 +502,77 @@ So here.
 #+begin_src emacs-lisp
 (setq ffap-newfile-prompt t)
 #+end_src
+
+*** spawn-shell
+#+begin_src emacs-lisp
+(defun this-dir-name ()
+  (car (last (delete "" (split-string default-directory "/")))))
+
+(defun spawn-shell (name &optional cmds)
+  "Invoke shell in buffer NAME with optional list of COMMANDS
+   example (spawn-shell \"*.emacs.d*\" '(\"ls\" \"file init.el\"))"
+  (interactive (list (read-string "Name: " (concat "*" (this-dir-name) "*" ))))
+  (let ((ss-buffer (or (get-buffer name)
+                       (get-buffer-create (generate-new-buffer-name name)))))
+    (+popup-buffer ss-buffer)
+    (shell ss-buffer)
+    (sleep-for 0 300) ;; buffer init time (for colors)
+    (dolist (c cmds)
+      (process-send-string nil c )
+      (comint-send-input))))
+
+
+#+end_src
+
+#+RESULTS:
+: spawn-shell
+
+*** where-am-i
+#+begin_src emacs-lisp
+(defun minus-user-path (path)
+  (let ((in-project-path (s-chop-prefix (projectile-project-root) path)))
+    (s-concat (projectile-project-name) "/" in-project-path)))
+
+(defun where-am-i ()
+  "copies present location into kill-ring and clipboard"
+  (interactive)
+  (kill-new (message (concat (minus-user-path buffer-file-name) ":" (int-to-string (line-number-at-pos))))))
+
+
+#+end_src
+
+#+RESULTS:
+: where-am-i
+
+*** org-journal
+#+begin_src emacs-lisp
+;; (use-package org-journal)
+;; need to install this:
+;; (use-package org-journal-tags
+;;   :after (org-journal cl-lib)
+;;   :config
+;;   (org-journal-tags-autosync-mode))
+#+end_src
+
+#+RESULTS:
+: org-journal
+
+* randomize region
+#+begin_src emacs-lisp
+;; thanks https://stackoverflow.com/a/6174107/714357
+(defun my-random-sort-lines (beg end)
+  "Sort lines in region randomly."
+  (interactive "r")
+  (save-excursion
+    (save-restriction
+      (narrow-to-region beg end)
+      (goto-char (point-min))
+      (let ;; To make `end-of-line' and etc. to ignore fields.
+          ((inhibit-field-text-motion t))
+        (sort-subr nil 'forward-line 'end-of-line nil nil
+                   (lambda (s1 s2) (eq (random 2) 0)))))))
+
+#+end_src
+
+#+RESULTS:
+: my-random-sort-lines
