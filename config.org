@@ -202,7 +202,7 @@ the power is worth it, I think.
 
 Project-wide rename workflow
 
-1. `SPC s R` counsel-git-grep *Don't hit enter yet!
+1. `SPC s R` counsel-git-grep *Don't hit enter yet! (or SPC s p)
 2. `C-c C-e` turn on wgrep(for edits)
 3. `M-%` search and replace interactivly
 4. `y` to replace or `n` to skip
@@ -221,8 +221,8 @@ Project-wide rename workflow
 
 Commenting
 
-`G c ?` evil-comment-operator - needs practice/research I'm not sure what the
-third key is supposed to do, but `G c c` seems to do what I want - comment a
+`g c ?` evil-comment-operator - needs practice/research I'm not sure what the
+third key is supposed to do, but `g c c` seems to do what I want - comment a
 line. With a selection(a.k.a. in visual mode), `G c` will comment the region, so
 that is nice. To bad that wasn't easier to figure out. There isn't anything helpful in the faq or docs via a search for "comment".
 
@@ -308,8 +308,9 @@ default keymapping.
 I followed this setup: https://www.masteringemacs.org/article/keeping-secrets-in-emacs-gnupg-auth-sources
 This didn't work before setting file-name-handler-alist - thanks https://github.com/hlissner/doom-emacs/issues/3339
 #+BEGIN_SRC emacs-lisp
-(let ((file-name-handler-alist (cons epa-file-handler nil)))
-  (load-library (expand-file-name "~/.doom.d/secrets.el.gpg")))
+; I don't have that secret on this machine currently
+;(let ((file-name-handler-alist (cons epa-file-handler nil)))
+;  (load-library (expand-file-name "~/.doom.d/secrets.el.gpg")))
 #+END_SRC
 
 
@@ -330,15 +331,7 @@ How should rbenv fit in rbenv.el?
 
 *** Java
 
-#+BEGIN_SRC emacs-lisp
-(use-package jenv
-  :config
-  (global-jenv-mode t))
-#+END_SRC
-
-#+RESULTS:
-: t
-
+;; todo use asdf
 
 ** indenting :revisit:
 It is common to want to indent more than one line at once in order to clean
@@ -370,19 +363,32 @@ to be a lot of key presses to delete something.
 
 #+begin_src emacs-lisp
 
-;; (smartparens-global-strict-mode t)
+(smartparens-global-strict-mode t)
 
-;; (map!
-;;  :leader
-;;  :prefix ("k" . "smartparens")
-;;  :n "x" #'sp-kill-sexp
-;;  :n "c" #'sp-copy-sexp
-;;  :n "s" #'sp-forward-slurp-sexp
-;;  :n "b" #'sp-forward-barf-sexp
-;;  :n "t" #'smartparens-strict-mode ;;toggle
-       ;; )
+(map!
+ :leader
+ :prefix ("k" . "smartparens")
+ :n "x" #'sp-kill-sexp
+ :n "c" #'sp-copy-sexp
+ :n "s" #'sp-forward-slurp-sexp
+ :n "b" #'sp-forward-barf-sexp
+ :n "t" #'smartparens-strict-mode ;;toggle
+ :n "f" #'cider-format-buffer
+ :n "d" #'cider-format-defun
+ )
 
-#+end_src
+(map!
+ :n
+ "C-M-s-x" #'sp-kill-sexp
+ "C-M-s-c" #'sp-copy-sexp
+ "C-M-s-s" #'sp-forward-slurp-sexp
+ "C-M-s-b" #'sp-forward-barf-sexp
+ "C-M-s-t" #'smartparens-strict-mode ;;toggle
+ )
+
+ #+end_src
+
+#+RESULTS:
 
 *** switching projects
 
@@ -395,13 +401,13 @@ to be a lot of key presses to delete something.
 
 ;; fullframe magit buffer
 (setq magit-display-buffer-function
-     (lambda (buffer)
-       (display-buffer buffer '(magit--display-buffer-fullframe))))
+      (lambda (buffer)
+        (display-buffer buffer '(magit--display-buffer-fullframe))))
 
 ;; undo doom's magit setting for this, this is the default
 (setq magit-bury-buffer-function 'magit-restore-window-configuration)
 
-(setq magit-list-refs-sortby "-creatordate")
+(setq magit-list-refs-sortby -creatordate)
 
 #+end_src
 
@@ -512,14 +518,19 @@ So here.
   "Invoke shell in buffer NAME with optional list of COMMANDS
    example (spawn-shell \"*.emacs.d*\" '(\"ls\" \"file init.el\"))"
   (interactive (list (read-string "Name: " (concat "*" (this-dir-name) "*" ))))
-  (let ((ss-buffer (or (get-buffer name)
-                       (get-buffer-create (generate-new-buffer-name name)))))
-    (+popup-buffer ss-buffer)
-    (shell ss-buffer)
-    (sleep-for 0 300) ;; buffer init time (for colors)
-    (dolist (c cmds)
-      (process-send-string nil c )
-      (comint-send-input))))
+  (let ((ss-buffer (save-window-excursion
+                     (or
+                      (if (projectile-project-p)
+                          (projectile-run-shell))
+                      (shell (or
+                              (get-buffer name)
+                              (get-buffer-create (generate-new-buffer-name name))))))))
+
+        ;; (sleep-for 0 300) ;; buffer init time (for colors)
+        ;; (dolist (c cmds)
+        ;;   (process-send-string nil c )
+        ;;   (comint-send-input)))
+  (+popup-buffer ss-buffer)))
 
 
 #+end_src
@@ -576,3 +587,19 @@ So here.
 
 #+RESULTS:
 : my-random-sort-lines
+
+* browse-kill-ring
+#+begin_src emacs-lisp
+(use-package browse-kill-ring)
+#+end_src
+
+* asdf
+not to be confused with the lisp object system
+I don't think this is neccessary due to env-from-shell or whatever thats called
+#+begin_src emacs-lisp
+
+#_(use-package asdf
+  :after (asdf-enable))
+#+end_src
+
+#+RESULTS:

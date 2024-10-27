@@ -52,3 +52,12 @@
 (package! jenv)
 (package! web-server)
 (package! magit)
+
+(package! foreman-mode)
+
+(package! browse-kill-ring)
+
+;; needs username and password or something
+;; (package! asdf
+;;   :recipe (:host github :repo "tabfugnic/asdf" :branch "main"))
+

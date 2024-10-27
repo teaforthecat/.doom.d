@@ -1,3 +1,4 @@
 /.DS_Store
 /config.el
 /secrets.el
+/custom.el
