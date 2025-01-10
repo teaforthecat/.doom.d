@@ -61,3 +61,5 @@
 ;; (package! asdf
 ;;   :recipe (:host github :repo "tabfugnic/asdf" :branch "main"))
 
+
+(package! noccur)

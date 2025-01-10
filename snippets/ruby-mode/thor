@@ -1,0 +1,20 @@
+# -*- mode: snippet -*-
+# name: thor
+# uuid:
+# key: thor
+# condition: t
+# --
+require "thor"
+
+class `(s-upper-camel-case
+ (projectile--file-name-sans-extensions
+  (buffer-file-name)))` < Thor
+
+  desc 'hi', 'hello'
+  def hello
+  end
+end
+
+`(s-upper-camel-case
+ (projectile--file-name-sans-extensions
+  (buffer-file-name)))`.start(ARGV)

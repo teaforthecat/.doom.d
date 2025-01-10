@@ -1,0 +1,15 @@
+#+title: Mastering Doom Emacs
+* Intro
+A thorough walkthrough of all the features of Doom Emacs, prioritized by need, usefulness and frequency of use.
+A checklist-based approach for learning, practice and mastery.
+* Org mode
+
+This is where we are so we may as well start here.
+~should this be a table?~
+C ret for inserting a new heading
+SPC m s l for demote subtree
+SPC m s h for promote subtree
+* Bookmarks
+SPC b m to set a bookmark
+SPC ret to jump to a bookmark
+* Refile zone

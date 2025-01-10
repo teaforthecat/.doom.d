@@ -181,6 +181,7 @@ effect.
 
 These functions help you find things.
 
+s-f (super-f) which is Commnad key on mac runs swiper, awesome interactive search within file, "find in file"
 SPC s b counsel-grep-or-swiper a little slow
 SPC s S swiper-isearch-thing-at-point
 SPC s p +ivy/project-search
@@ -329,6 +330,27 @@ actually running the code, so let's set that.
 
 How should rbenv fit in rbenv.el?
 
+*** Custom format function
+I didn't see an option in Rubocop or Rufo to format a common situation in code: the long argument function call. I would like to replace commas with commas and newlines so each argument is on it's own line. Then indent, or format the whole method/def.
+#+begin_src emacs-lisp
+(defun my-format-args-in-defun ()
+  (interactive)
+  (save-excursion
+    (er/mark-defun)
+    (goto-char (region-beginning))
+    (while (re-search-forward ", " (region-end) t)
+      (replace-match ",
+")
+      (indent-according-to-mode))
+    ))
+
+;; Control-Super-f a.k.a. Control and Command and f at the same time
+(map! :nv "C-s-f" 'my-format-args-in-defun )
+#+end_src
+
+#+RESULTS:
+
+
 *** Java
 
 ;; todo use asdf
@@ -372,30 +394,36 @@ to be a lot of key presses to delete something.
  :n "c" #'sp-copy-sexp
  :n "s" #'sp-forward-slurp-sexp
  :n "b" #'sp-forward-barf-sexp
- :n "t" #'smartparens-strict-mode ;;toggle
+ :n "p" #'sp-wrap-square
+ :n "t" #'sp-wrap-round
+ :n "v" #'sp-wrap-curly
+ :n "R" #'sp-rewrap-sexp
+
+ :n "," #'sp-transpose-sexp
  :n "f" #'cider-format-buffer
  :n "d" #'cider-format-defun
  )
 
 (map!
- :n
- "C-M-s-x" #'sp-kill-sexp
- "C-M-s-c" #'sp-copy-sexp
- "C-M-s-s" #'sp-forward-slurp-sexp
- "C-M-s-b" #'sp-forward-barf-sexp
- "C-M-s-t" #'smartparens-strict-mode ;;toggle
- )
+ ;; :prefix ("C-s" . "Control-Super")
+
+ :ginv "C-s-r" #'er/expand-region
+        )
 
  #+end_src
 
-#+RESULTS:
+ #+RESULTS:
 
 *** switching projects
 
 #+begin_src emacs-lisp
 (setq +workspaces-switch-project-function
       (lambda (dir)
+        ;;(let ((magit-inhibit-save-previous-winconf 't))
+        ;;  (magit-status dir))
         (magit-status dir)
+        ;;(project-shell)
+        ;;(spawn-shell (concat "*" (this-dir-name dir) "*" ) '("h") )
         ;; (+shell/toggle)
         ))
 
@@ -407,12 +435,13 @@ to be a lot of key presses to delete something.
 ;; undo doom's magit setting for this, this is the default
 (setq magit-bury-buffer-function 'magit-restore-window-configuration)
 
-(setq magit-list-refs-sortby -creatordate)
+(setq magit-list-refs-sortby "-creatordate")
 
+(eval-after-load 'magit-diff
+  (lambda ()
+    (keymap-set magit-diff-section-base-map "<return>" 'magit-diff-visit-worktree-file)
+    (keymap-set magit-diff-section-base-map "C-<return>" 'magit-diff-visit-file)))
 #+end_src
-
-#+RESULTS:
-: -creatordate
 
 ** other apps
 
@@ -510,33 +539,15 @@ So here.
 #+end_src
 
 *** spawn-shell
+Spawn shell is no more.
+
+Really this can be simplified to an advice on `project-shell`
 #+begin_src emacs-lisp
-(defun this-dir-name ()
-  (car (last (delete "" (split-string default-directory "/")))))
-
-(defun spawn-shell (name &optional cmds)
-  "Invoke shell in buffer NAME with optional list of COMMANDS
-   example (spawn-shell \"*.emacs.d*\" '(\"ls\" \"file init.el\"))"
-  (interactive (list (read-string "Name: " (concat "*" (this-dir-name) "*" ))))
-  (let ((ss-buffer (save-window-excursion
-                     (or
-                      (if (projectile-project-p)
-                          (projectile-run-shell))
-                      (shell (or
-                              (get-buffer name)
-                              (get-buffer-create (generate-new-buffer-name name))))))))
-
-        ;; (sleep-for 0 300) ;; buffer init time (for colors)
-        ;; (dolist (c cmds)
-        ;;   (process-send-string nil c )
-        ;;   (comint-send-input)))
-  (+popup-buffer ss-buffer)))
-
-
+(eval-after-load 'project
+  (progn ()
+         (advice-add 'project-shell :after #'+popup/buffer)
+         (map! :leader :nv "p s" 'project-shell)))
 #+end_src
-
-#+RESULTS:
-: spawn-shell
 
 *** where-am-i
 #+begin_src emacs-lisp
@@ -548,6 +559,10 @@ So here.
   "copies present location into kill-ring and clipboard"
   (interactive)
   (kill-new (message (concat (minus-user-path buffer-file-name) ":" (int-to-string (line-number-at-pos))))))
+
+(defun share-line ()
+  (concat
+   (where-am-i) (copy-line-as)))
 
 
 #+end_src
@@ -583,7 +598,7 @@ So here.
         (sort-subr nil 'forward-line 'end-of-line nil nil
                    (lambda (s1 s2) (eq (random 2) 0)))))))
 
-#+end_src
+  #+end_src
 
 #+RESULTS:
 : my-random-sort-lines
@@ -597,9 +612,40 @@ So here.
 not to be confused with the lisp object system
 I don't think this is neccessary due to env-from-shell or whatever thats called
 #+begin_src emacs-lisp
-
-#_(use-package asdf
-  :after (asdf-enable))
+;; (use-package asdf
+  ;; :after (asdf-enable))
 #+end_src
 
 #+RESULTS:
+
+
+* Bookmarks
+save them all
+#+begin_src emacs-lisp
+
+(add-hook  'bookmark-set 'bookmark-save)
+
+#+end_src
+
+#+RESULTS:
+| bookmark-save |
+
+* cider
+global aliases to eval tests in the repl
+#+begin_src emacs-lisp
+(setq cider-clojure-cli-global-aliases ":dev:test")
+
+#+end_src
+
+#+RESULTS:
+: :dev:test
+
+* org
+`C-c ret` is insert new heading
+* REFILE
+After `SPC p c` to compile a project, use `M-i` to edit the command
+
+* revert after auto-save hook formats the file
+#+begin_src emacs-lisp
+(global-auto-revert-mode t)
+#+end_src
